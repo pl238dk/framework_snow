@@ -1,0 +1,229 @@
+{% extends 'template.jinja2' %}
+{% block head %}
+<title>Test</title>
+<!-- reload every half-hour -->
+<meta http-equiv="refresh" content="1800">
+<style>
+* {
+	margin:	0;
+	padding:	0;
+	font-family:	'Courier New', monospace;
+}
+html,body {
+	height:	100%;
+	background-color:	#a7c5eb;
+}
+.bar {
+	height:	5%;
+	width:	100%;
+	background-color:	#4a47a3;
+}
+.cell {
+	border:	1px solid black;
+	background-color:	#709fb0;
+}
+.red_text {
+	color:	red;
+	font-weight:	bold;
+}
+#middle {
+	height:	90%;
+	width:	100%;
+}
+.grid_container_two {
+	grid-template-columns:	150px 500px;
+}
+.grid_container_three {
+	grid-template-columns:	150px 170px auto;
+}
+.black_bg {
+	background-color:	#413c69;
+	/*background-color:	black;*/
+	color: grey;
+}
+a {
+	margin:	0 auto 0 auto;
+}
+#fader {
+	background-color:	green;
+	height:	30px;
+	width:	30px;
+	opacity:	0;
+	transition:	opacity 500ms;
+}
+#fader.waa {
+	opacity:	1;
+}
+#container {
+	visibility: hidden;
+}
+</style>
+{% endblock %}
+{% block body %}
+
+<div class='bar'>
+	<h1>Service-Now</h1>
+</div>
+<div id='middle'>
+
+<div id='incidents'>
+<h2>-- INC --</h2>
+<a href='/search' target='_blank'>Search</a>
+{% if not incidents %}
+	<h3>:) None!</h3>
+{% endif %}
+<div class='grid_container_three'>
+{% for t in incidents %}
+	<!-- column 1 -->
+	{% if t['state'] == 'Resolved' %}
+		<div class='cell black_bg' id='{{ t["number"] }}'>
+			<a href='https://cbts.service-now.com/incident.do?sys_id={{ t["sys_id"] }}' title='{{ t["description"] }}' target='_blank'>{{ t['number'] }}</a>
+			<button onclick='working(this)'>view</button>
+		</div>
+	{% else %}
+		<div class='cell' id='{{ t["number"] }}'>
+			<a href='https://cbts.service-now.com/incident.do?sys_id={{ t["sys_id"] }}' target='_blank'>{{ t['number'] }}</a>
+			<button onclick='working(this)'>view</button>
+		</div>
+	{% endif %}
+	<!-- column 2 -->
+	{% if t['state'] == 'Resolved' and t['urgency'] != '3 - Medium' %}
+		<div class='cell red_text black_bg'>{{ t['state'] }}</div>
+	{% elif t['state'] == 'Resolved' %}
+		<div class='cell black_bg'>{{ t['state'] }}</div>
+	{% else %}
+		<div class='cell'>{{ t['state'] }}</div>
+	{% endif %}
+	<!-- column 3 -->
+	{% if t['state'] == 'Resolved' %}
+		<div class='cell black_bg'>{{ t['short_description'] }}</div>
+	{% else %}
+		<div class='cell'>{{ t['short_description'] }}</div>
+	{% endif %}
+{% endfor %}
+</div>
+</div>
+
+<div id='sc_tasks'>
+<h2>-- TASK --</h2>
+{% if not sc_tasks %}
+	<h3>:) None!</h3>
+{% endif %}
+<div class='grid_container_three'>
+{% for t in sc_tasks %}
+	<!-- column 1 -->
+	<div class='cell'>
+		<a href='https://cbts.service-now.com/sc_task.do?sys_id={{ t["sys_id"] }}' title='{{ t["description"] }}' target='_blank'>{{ t['number'] }}</a>
+	</div>
+	<!-- column 2 -->
+	<div class='cell'>{{ t['state'] }}</div>
+	<!-- column 3 -->
+	<div class='cell'>{{ t['short_description'] }}</div>
+{% endfor %}
+</div>
+</div>
+
+<div id='container'>
+<div id='fader'></div>
+<h2>-- Working --</h2>
+<div class='grid_container_two'>
+	<div class='cell'>Number<button onclick='wipe()'>Clear</button></div>
+	<div class='cell'><div id='number'></div></div>
+	
+	<div class='cell'>Work Notes</div>
+	<div class='cell'><textarea id='work_notes'></textarea><button onclick='update_wn()'>Update</button></div>
+	
+	<div class='cell'>Close Notes</div>
+	<div class='cell'><textarea id='close_notes'></textarea><button onclick='update_cn()'>Update</button></div>
+	
+	<div class='cell'>State</div>
+	<div class='cell'><div id='state'></div><button onclick='close_ticket()'>Close</button></div>
+</div>
+</div>
+
+</div>
+<div class='bar'>
+	jason.mcvean
+</div>
+
+<script>
+
+function working(e){
+	document.getElementById('container').style.visibility = 'visible';
+	document.getElementById('number').innerHTML = e.parentElement.id;
+	return;
+};
+
+function update_wn(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'work_notes';
+	var v = document.getElementById(k).value;
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function update_cn(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'close_notes';
+	var v = document.getElementById(k).value;
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function close_ticket(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'state';
+	if (n[0] == 'T'){
+		var v = '3';
+	} else {
+		var v = '6';
+	}
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function fade(){
+	setTimeout(function(){
+		document.getElementById('fader').className = 'waa';
+	}, 0);
+	setTimeout(function(){
+		document.getElementById('fader').className = '';
+	}, 500);
+};
+
+function wipe(){
+	document.getElementById('number').innerHTML = '';
+	document.getElementById('work_notes').innerHTML = '';
+	document.getElementById('close_notes').innerHTML = '';
+	document.getElementById('container').style.visibility = 'hidden';
+};
+</script>
+
+{% endblock %}

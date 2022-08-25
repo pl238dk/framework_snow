@@ -1,0 +1,185 @@
+{% extends 'template.jinja2' %}
+{% block head %}
+<style>
+* {
+	margin:	0;
+	padding:	0;
+	font-family:	'Courier New', monospace;
+}
+html,body {
+	height:	100%;
+	background-color:	#a7c5eb;
+}
+.bar {
+	height:	5%;
+	width:	100%;
+	background-color:	#4a47a3;
+}
+.cell {
+	border:	1px solid black;
+	background-color:	#709fb0;
+}
+.red_text {
+	color:	red;
+	font-weight:	bold;
+}
+#middle {
+	height:	90%;
+	width:	100%;
+	overflow:	auto;
+}
+.grid_container_two {
+	grid-template-columns:	150px auto;
+}
+.grid_container_three {
+	grid-template-columns:	150px 170px auto;
+}
+.black_bg {
+	background-color:	#413c69;
+	/*background-color:	black;*/
+	color: grey;
+}
+a {
+	margin:	0 auto 0 auto;
+}
+#fader {
+	background-color:	green;
+	height:	30px;
+	width:	30px;
+	opacity:	0;
+	transition:	opacity 500ms;
+}
+#fader.waa {
+	opacity:	1;
+}
+#container {
+	visibility: visible;
+}
+#description {
+	white-space: pre-wrap;
+}
+</style>
+{% endblock %}
+{% block body %}
+
+<div class='bar'>
+	<h1>Service-Now</h1>
+</div>
+
+<div id='middle'>
+<form action='/search' method='POST'>
+	<input type='text' name='number'/>
+	<input type='submit' value='Search' />
+</form>
+{% if ticket %}
+<div id='container'>
+<div id='fader'></div>
+<h2>-- Working --</h2>
+<div class='grid_container_two'>
+	<div class='cell'>Number<button onclick='wipe()'>Clear</button></div>
+	<div class='cell'><div id='number'>{{ ticket['number'] }}</div></div>
+	
+	<div class='cell'>State</div>
+	<div class='cell'><div id='state'>{{ ticket['state'] }}</div></div>
+	
+	<div class='cell'>Assigned To</div>
+	<div class='cell'><div id='assigned_to'>{{ ticket['assigned_to']['display_value'] }}</div></div>
+	
+	<div class='cell'>Short Description</div>
+	<div class='cell'><div id='short_description'>{{ ticket['short_description'] }}</div></div>
+	
+	<div class='cell'>Description</div>
+	<div class='cell'><div id='description'>{{ ticket['description'] }}</div></div>
+	
+	<div class='cell'>Work Notes</div>
+	<div class='cell'><textarea id='work_notes'></textarea><button onclick='update_wn()'>Update</button></div>
+	
+	<div class='cell'>Close Notes</div>
+	<div class='cell'><textarea id='close_notes'></textarea><button onclick='update_cn()'>Update</button></div>
+	
+	<div class='cell'>State</div>
+	<div class='cell'><div id='state'></div><button onclick='close_ticket()'>Close</button></div>
+</div>
+</div>
+{% endif %}
+</div>
+
+</div>
+<div class='bar'>
+	jason.mcvean
+</div>
+
+<script>
+
+function update_wn(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'work_notes';
+	var v = document.getElementById(k).value;
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function update_cn(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'close_notes';
+	var v = document.getElementById(k).value;
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function close_ticket(){
+	var x = new XMLHttpRequest();
+	x.onreadystatechange = function(){
+		if (this.readyState == 4 && this.status == 200){
+			console.log(this.responseText);
+			fade();
+		};
+	};
+	var n = document.getElementById('number').innerHTML;
+	var k = 'state';
+	if (n[0] == 'T'){
+		var v = '3';
+	} else {
+		var v = '6';
+	}
+	var send_string = 'number=' + n + '&key=' + k + '&value=' + v;
+	x.open('POST', '/update_ticket', true);
+	x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	x.send(send_string);
+};
+
+function fade(){
+	setTimeout(function(){
+		document.getElementById('fader').className = 'waa';
+	}, 0);
+	setTimeout(function(){
+		document.getElementById('fader').className = '';
+	}, 500);
+};
+
+function wipe(){
+	document.getElementById('number').innerHTML = '';
+	document.getElementById('container').style.visibility = 'hidden';
+};
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'template.jinja2' %}
+{% block head %}
+<style>
+.cell {
+}
+</style>
+{% endblock %}
+{% block body %}
+
+<div id='status'></div>
+
+<input type='text' id='num' />
+<button onclick='get_data()'>Search</button>
+
+<div class='cell' id='number'></div>
+<div class='cell' id='company'></div>
+<div class='cell' id='state'></div>
+<div class='cell' id='short_description'></div>
+<div class='cell' id='description'></div>
+
+<script>
+function get_data(){
+
+var x = new XMLHttpRequest();
+x.onreadystatechange = function(){
+	if (this.readyState == 4 && this.status == 200){
+		var j = JSON.parse(this.responseText);
+		console.log(j);
+		document.getElementById('number').innerHTML = j.number;
+		document.getElementById('state').innerHTML = j.state;
+		document.getElementById('company').innerHTML = j.company.display_value;
+		document.getElementById('short_description').innerHTML = j.short_description;
+		document.getElementById('description').innerHTML = j.description;
+	};
+};
+var number = document.getElementById('num').value;
+x.open('GET','/get_ticket_data?number='+number, true);
+x.send();
+
+};
+</script>
+
+{% endblock %}

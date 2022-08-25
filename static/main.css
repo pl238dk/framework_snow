@@ -1,0 +1,28 @@
+.grid_container_one {
+	display:	grid;
+	grid-template-columns:	auto;
+}
+.grid_container_two {
+	display:	grid;
+	grid-template-columns:	auto auto;
+}
+.grid_container_three {
+	display:	grid;
+	grid-template-columns:	auto auto auto;
+}
+.grid_container_four {
+	display:	grid;
+	grid-template-columns:	auto auto auto auto;
+}
+.grid_container_five {
+	display:	grid;
+	grid-template-columns:	auto auto auto auto auto;
+}
+.grid_container_six {
+	display:	grid;
+	grid-template-columns:	auto auto auto auto auto auto;
+}
+.grid_container_seven {
+	display:	grid;
+	grid-template-columns:	auto auto auto auto auto auto auto;
+}

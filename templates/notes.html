@@ -1,0 +1,60 @@
+{% extends 'template.jinja2' %}
+{% block head %}
+
+{% endblock %}
+{% block body %}
+
+<div id='status'></div>
+
+<input type='text' id='number' />
+<select id='note_type'>
+	<option>work_notes</option>
+	<option>close_notes</option>
+</select>
+<textarea type='text' id='notes'></textarea>
+<button onclick='send()'>Update Ticket</button>
+
+<input type='text' id='default' value='Based on our investigation and diagnosis of this incident, CBTS has determined this issue is resolved. Please call us within 48 hours if this issue requires additional attention.'/>
+<button onclick='clo()'>Close Ticket</button>
+
+
+<script>
+
+function send(){
+var x = new XMLHttpRequest();
+
+x.onreadystatechange = function(){
+	if (this.readyState == 4 && this.status == 200){
+		document.getElementById('status').innerHTML = 'sent';
+	};
+};
+
+x.open('POST','/update_ticket', true);
+var number = document.getElementById('number').value;
+var notes = document.getElementById('notes').value;
+var nt = document.getElementById('note_type');
+var note_type = nt[nt.selectedIndex].value;
+var sendstring = 'number=' + number + '&notes=' + notes + '&note_type=' + note_type;
+x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+x.send(sendstring);
+};
+
+function clo(){
+var x = new XMLHttpRequest();
+
+x.onreadystatechange = function(){
+	if (this.readyState == 4 && this.status == 200){
+		document.getElementById('status').innerHTML = 'sent';
+	};
+};
+
+x.open('POST','/set_ticket_state', true);
+var number = document.getElementById('number').value;
+var sendstring = 'number=' + number;
+x.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+x.send(sendstring);
+};
+
+</script>
+
+{% endblock %}
